@@ -58,6 +58,30 @@ describe("/api/topics", () => {
   });
 });
 
+describe("/api/users", () => {
+  describe("/ GET", () => {
+    test("Returns 200 - All users", () => {
+      return request(app)
+        .get("/api/users")
+        .expect(200)
+        .then(({ body: { users } }) => {
+          expect(users).toBeInstanceOf(Array);
+          expect(users.length).toEqual(4);
+          expect(users[0]).toEqual({
+            username: "butter_bridge",
+          });
+          users.forEach((user) => {
+            expect(user).toEqual(
+              expect.objectContaining({
+                username: expect.any(String),
+              })
+            );
+          });
+        });
+    });
+  });
+});
+
 describe("/api/articles", () => {
   describe("/:article_id GET", () => {
     test("Returns 200 - Article", () => {

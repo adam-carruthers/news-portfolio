@@ -5,6 +5,7 @@ const topicsRouter = require("./topics/router");
 
 const fs = require("fs/promises");
 const { endpointWrapper } = require("./utils");
+const userRouter = require("./users/routes");
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use("/api/topics", topicsRouter);
 app.use("/api/articles", articleRouter);
 
 app.use("/api/comments", commentsRouter);
+
+app.use("/api/users", userRouter);
 
 app.all("/*", (req, res) => {
   res.status(404).send({ msg: "Route not found" });
