@@ -1,5 +1,14 @@
 const { endpointWrapper } = require("../utils");
-const { selectArticle, updateArticleVotes } = require("./model");
+const {
+  selectArticle,
+  updateArticleVotes,
+  selectArticles,
+} = require("./model");
+
+exports.getArticles = endpointWrapper(async (req, res) => {
+  const articles = await selectArticles(req.query);
+  res.status(200).send({ articles });
+});
 
 exports.getArticle = endpointWrapper(async (req, res) => {
   const article = await selectArticle(req.params.article_id);

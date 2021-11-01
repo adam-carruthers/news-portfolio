@@ -1,11 +1,44 @@
 const db = require("../db/connection");
 
+exports.selectArticles = async ({ sort_by, order, topic } = {}) => {
+  sort_by = sort_by || "created_at";
+  if (
+    ![
+      "author",
+      "title",
+      "article_id",
+      "topic",
+      "created_at",
+      "votes",
+      "comment_count",
+    ].includes(sort_by)
+  )
+    throw { statusCode: 400, msg: "Invalid sort_by query" };
+
+  order = order || "desc";
+  if (!["asc", "desc"].includes(order))
+    throw { statusCode: 400, msg: "Invalid order query" };
+
+  let queryStr = `
+    SELECT articles.*, COUNT(*)::INT AS comment_count FROM articles
+    LEFT JOIN comments
+    ON comments.article_id = articles.article_id
+    ${topic ? "WHERE topic=$1" : ""}
+    GROUP BY articles.article_id
+    ORDER BY ${sort_by} ${order}
+  `;
+  const queryParams = topic ? [String(topic)] : [];
+
+  const { rows } = await db.query(queryStr, queryParams);
+  return rows;
+};
+
 exports.selectArticle = async (article_id) => {
   const {
     rows: [article],
   } = await db.query(
     `
-    SELECT articles.article_id, title, articles.body, articles.votes, topic, articles.author, articles.created_at, COUNT(*)::INT AS comment_count FROM articles
+    SELECT articles.*, COUNT(*)::INT AS comment_count FROM articles
     LEFT JOIN comments
     ON comments.article_id = articles.article_id
     WHERE articles.article_id=$1

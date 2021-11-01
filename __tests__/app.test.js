@@ -8,7 +8,7 @@ beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
 describe("404 endpoint", () => {
-  test("GET /xyzk return 404", () => {
+  test("/xyzk GET return 404", () => {
     return request(app)
       .get("/xyzk")
       .expect(404)
@@ -27,6 +27,10 @@ describe("/api/topics", () => {
         .then(({ body: { topics } }) => {
           expect(topics).toBeInstanceOf(Array);
           expect(topics.length).toEqual(3);
+          expect(topics[0]).toEqual({
+            description: "The man, the Mitch, the legend",
+            slug: "mitch",
+          });
           topics.forEach((topic) => {
             expect(topic).toEqual(
               expect.objectContaining({
@@ -130,6 +134,124 @@ describe("/api/articles", () => {
         .patch("/api/articles/abcd")
         .send({ inc_votes: 23 })
         .expect(404);
+    });
+  });
+
+  describe("/ GET", () => {
+    test("Returns 200 - All articles", () => {
+      return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(12);
+          articles.forEach((topic) => {
+            expect(topic).toEqual(
+              expect.objectContaining({
+                author: expect.any(String),
+                title: expect.any(String),
+                article_id: expect.any(Number),
+                topic: expect.any(String),
+                created_at: expect.any(String),
+                votes: expect.any(Number),
+                comment_count: expect.any(Number),
+              })
+            );
+          });
+          expect(
+            articles.map(({ created_at }) => Date.parse(created_at).valueOf())
+          ).toBeSorted({ descending: true });
+        });
+    });
+    test("Returns 200 - All articles ascending", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ order: "asc" })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(12);
+          expect(
+            articles.map(({ created_at }) => Date.parse(created_at).valueOf())
+          ).toBeSorted({ descending: false });
+        });
+    });
+    test("Returns 200 - All articles sorted by title", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "title" })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(12);
+          expect(articles).toBeSortedBy("title", { descending: true });
+        });
+    });
+    test("Returns 200 - All articles sorted by comment_count ascending", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "comment_count", order: "asc" })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(12);
+          expect(articles).toBeSortedBy("comment_count", { descending: false });
+        });
+    });
+    test("Returns 200 - All articles filtered by topic", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ topic: "mitch" })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(11);
+          articles.forEach(({ topic }) => {
+            expect(topic).toEqual("mitch");
+          });
+        });
+    });
+    test("Returns 200 - No articles with weird topic", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ topic: { a: 5 } })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(0);
+        });
+    });
+    test("Returns 200 - All mitch articles sorted by votes ascending", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "comment_count", order: "asc", topic: "mitch" })
+        .expect(200)
+        .then(({ body: { articles } }) => {
+          expect(articles).toBeInstanceOf(Array);
+          expect(articles.length).toEqual(11);
+          expect(articles).toBeSortedBy("comment_count", { descending: false });
+          articles.forEach((article) => {
+            expect(article.topic).toEqual("mitch");
+          });
+        });
+    });
+    test("Returns 400 - Invalid sort_by", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ sort_by: "defo not a key" })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("Invalid sort_by query");
+        });
+    });
+    test("Returns 400 - Invalid order", () => {
+      return request(app)
+        .get("/api/articles")
+        .query({ order: true })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("Invalid order query");
+        });
     });
   });
 });
