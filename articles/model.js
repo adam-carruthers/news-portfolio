@@ -17,3 +17,27 @@ exports.selectArticle = async (article_id) => {
     throw { statusCode: 404, msg: "No article exists with that article_id" };
   return article;
 };
+
+exports.updateArticleVotes = async (article_id, inc_votes) => {
+  if (typeof inc_votes !== "number" || !Number.isInteger(inc_votes)) {
+    throw {
+      statusCode: 400,
+      msg: "inc_votes is required and must be an integer",
+    };
+  }
+  const {
+    rows: [article],
+  } = await db.query(
+    `
+    UPDATE articles
+    SET
+      votes = votes + $1
+    WHERE article_id=$2
+    RETURNING *;
+    `,
+    [inc_votes, article_id]
+  );
+  if (!article)
+    throw { statusCode: 404, msg: "No article exists with that article_id" };
+  return article;
+};

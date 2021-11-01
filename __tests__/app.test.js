@@ -71,4 +71,65 @@ describe("/api/articles", () => {
       return request(app).get("/api/articles/abcd").expect(404);
     });
   });
+
+  describe("/:article_id PATCH (update votes)", () => {
+    test("Returns 200 - Article with updated votes", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: 23 })
+        .expect(200)
+        .then(({ body: { article } }) => {
+          expect(article).toEqual({
+            article_id: 1,
+            author: "butter_bridge",
+            body: "I find this existence challenging",
+            created_at: "2020-07-09T20:11:00.000Z",
+            title: "Living in the shadow of a great man",
+            topic: "mitch",
+            votes: 123,
+          });
+        });
+    });
+    test("Returns 400 - inc_votes is required", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("inc_votes is required and must be an integer");
+        });
+    });
+    test("Returns 400 - inc_votes must be a number", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: "abc" })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("inc_votes is required and must be an integer");
+        });
+    });
+    test("Returns 400 - inc_votes must be an integer", () => {
+      return request(app)
+        .patch("/api/articles/1")
+        .send({ inc_votes: 35.35 })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("inc_votes is required and must be an integer");
+        });
+    });
+    test("Returns 404 - article_id=9999 does not exist", () => {
+      return request(app)
+        .patch("/api/articles/9999")
+        .send({ inc_votes: 23 })
+        .expect(404)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("No article exists with that article_id");
+        });
+    });
+    test("Returns 404 - article_id=abcd does not exist", () => {
+      return request(app)
+        .patch("/api/articles/abcd")
+        .send({ inc_votes: 23 })
+        .expect(404);
+    });
+  });
 });
