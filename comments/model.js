@@ -34,3 +34,15 @@ exports.insertComment = async (article_id, { username, body }) => {
   );
   return comment;
 };
+
+exports.removeComment = async (comment_id) => {
+  const { rowCount } = await db.query(
+    `
+    DELETE FROM comments
+    WHERE comment_id = $1
+    `,
+    [comment_id]
+  );
+  if (!rowCount)
+    throw { statusCode: 404, msg: "No comment exists with that comment_id" };
+};

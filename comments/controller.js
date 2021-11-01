@@ -1,5 +1,9 @@
 const { endpointWrapper } = require("../utils");
-const { selectArticleComments, insertComment } = require("../comments/model");
+const {
+  selectArticleComments,
+  insertComment,
+  removeComment,
+} = require("../comments/model");
 
 exports.getArticleComments = endpointWrapper(async (req, res) => {
   const comments = await selectArticleComments(req.params.article_id);
@@ -17,4 +21,9 @@ exports.postArticleComment = endpointWrapper(async (req, res) => {
       throw { statusCode: 400, msg: "Invalid or missing user" };
     throw err;
   }
+});
+
+exports.deleteComment = endpointWrapper(async (req, res) => {
+  await removeComment(req.params.comment_id);
+  res.sendStatus(204);
 });

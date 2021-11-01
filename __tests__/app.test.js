@@ -18,6 +18,20 @@ describe("404 endpoint", () => {
   });
 });
 
+describe("/api GET", () => {
+  test("Returns 200 - All topics", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body["GET /api"]).toEqual({
+          description:
+            "serves up a json representation of all the available endpoints of the api",
+        });
+      });
+  });
+});
+
 describe("/api/topics", () => {
   describe("/ GET", () => {
     test("Returns 200 - All topics", () => {
@@ -408,6 +422,31 @@ describe("/api/articles", () => {
     });
     test("Returns 404 - Article does not exist weird article_id", () => {
       return request(app).post("/api/articles/094a/comments").expect(404);
+    });
+  });
+});
+
+describe("/api/comments", () => {
+  describe("/:comment_id DELETE", () => {
+    test("204 - Deletes comment", () => {
+      return request(app)
+        .delete("/api/comments/16")
+        .expect(204)
+        .then(() => request(app).get("/api/articles/6/comments").expect(200))
+        .then(({ body: { comments } }) => {
+          expect(comments).toEqual([]); // Checks deleted from article comments
+        });
+    });
+    test("404 - Invalid comment id", () => {
+      return request(app)
+        .delete("/api/comments/9999")
+        .expect(404)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("No comment exists with that comment_id");
+        });
+    });
+    test("404 - Invalid and weird comment id", () => {
+      return request(app).delete("/api/comments/abcd").expect(404);
     });
   });
 });
