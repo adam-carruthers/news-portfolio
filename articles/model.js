@@ -13,5 +13,7 @@ exports.selectArticle = async (article_id) => {
     `,
     [article_id]
   );
+  if (!article)
+    throw { statusCode: 404, msg: "No article exists with that article_id" };
   return article;
 };

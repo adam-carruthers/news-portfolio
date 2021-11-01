@@ -46,7 +46,7 @@ describe("/api/articles", () => {
       return request(app)
         .get("/api/articles/3")
         .expect(200)
-        .then(({ body, body: { article } }) => {
+        .then(({ body: { article } }) => {
           expect(article).toEqual({
             article_id: 3,
             author: "icellusedkars",
@@ -58,6 +58,17 @@ describe("/api/articles", () => {
             comment_count: 2,
           });
         });
+    });
+    test("Returns 404 - article_id=9999 does not exist", () => {
+      return request(app)
+        .get("/api/articles/9999")
+        .expect(404)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("No article exists with that article_id");
+        });
+    });
+    test("Returns 404 - article_id=abcd does not exist", () => {
+      return request(app).get("/api/articles/abcd").expect(404);
     });
   });
 });
