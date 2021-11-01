@@ -297,4 +297,117 @@ describe("/api/articles", () => {
       return request(app).get("/api/articles/094a/comments").expect(404);
     });
   });
+
+  describe("/:article_id/comments POST", () => {
+    test("Returns 200 - new comment posted", () => {
+      return request(app)
+        .post("/api/articles/5/comments")
+        .send({
+          username: "lurker",
+          body: "jk lurkers don't write comments",
+        })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              article_id: 5,
+              author: "lurker",
+              body: "jk lurkers don't write comments",
+              comment_id: 19,
+              created_at: expect.any(String),
+              votes: 0,
+            })
+          );
+        });
+    });
+    test("Returns 200 - new comment posted ignores other items", () => {
+      return request(app)
+        .post("/api/articles/5/comments")
+        .send({
+          username: "lurker",
+          body: "jk lurkers don't write comments",
+          ignore_me: "hi",
+          created_at: "some fake time",
+        })
+        .expect(200)
+        .then(({ body: { comment } }) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              article_id: 5,
+              author: "lurker",
+              body: "jk lurkers don't write comments",
+              comment_id: 19,
+              created_at: expect.any(String),
+              votes: 0,
+            })
+          );
+        });
+    });
+    test("Returns 400 - user doesn't exist", () => {
+      return request(app)
+        .post("/api/articles/1/comments")
+        .send({
+          username: "goodyguts",
+          body: "insightful comment",
+        })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("Invalid or missing user");
+        });
+    });
+    test("Returns 400 - invalid user", () => {
+      return request(app)
+        .post("/api/articles/4/comments")
+        .send({
+          username: 1234,
+          body: "insightful comment",
+        })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("Invalid or missing user");
+        });
+    });
+    test("Returns 400 - missing body", () => {
+      return request(app)
+        .post("/api/articles/3/comments")
+        .send({
+          username: "icellusedkars",
+        })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual(
+            "Body is required, must be a string, and must not be empty"
+          );
+        });
+    });
+    test("Returns 400 - empty body", () => {
+      return request(app)
+        .post("/api/articles/3/comments")
+        .send({
+          username: "icellusedkars",
+          body: "",
+        })
+        .expect(400)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual(
+            "Body is required, must be a string, and must not be empty"
+          );
+        });
+    });
+    test("Returns 404 - Article does not exist", () => {
+      return request(app)
+        .post("/api/articles/9876/comments")
+        .send({
+          username: "lurker",
+          body: "jk lurkers don't write comments",
+        })
+        .expect(404)
+        .then(({ body: { err } }) => {
+          expect(err).toEqual("No article exists with that article_id");
+        });
+    });
+    test("Returns 404 - Article does not exist weird article_id", () => {
+      return request(app).post("/api/articles/094a/comments").expect(404);
+    });
+  });
 });

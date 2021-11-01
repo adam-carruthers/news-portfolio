@@ -51,18 +51,6 @@ exports.selectArticle = async (article_id) => {
   return article;
 };
 
-exports.selectArticleComments = async (article_id) => {
-  await exports.selectArticle(article_id); // 404s if article doesn't exist
-  const { rows } = await db.query(
-    `
-    SELECT * FROM comments
-    WHERE comments.article_id=$1
-    `,
-    [article_id]
-  );
-  return rows;
-};
-
 exports.updateArticleVotes = async (article_id, inc_votes) => {
   if (typeof inc_votes !== "number" || !Number.isInteger(inc_votes)) {
     throw {
