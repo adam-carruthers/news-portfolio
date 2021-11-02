@@ -15,4 +15,4 @@ To run the project:
 - Create the relevant databases in your local postgresql database using `npm run setup-dbs`
 - You must then include a `.env.test` and `.env.development` file with the `PGDATABASE` environment variable correctly set to the relevant databases.
 - Seed the database by running `npm run seed`.
-- Finally you can use `npm run dev` to run the test server.
+- Finally you can use `npm start` to run the test server.
